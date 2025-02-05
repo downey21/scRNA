@@ -21,8 +21,8 @@ sc.settings.set_figure_params(
 # In this tutorial, we will use one batch of the aforementioned dataset, sample 4 of donor 8,
 # to showcase the best practices for scRNA-seq data preprocessing.
 
-# Read 10x Genomics HDF5 file
-# Output: AnnData object
+# Read 10x Genomics HDF5 file (.h5)
+# Output: AnnData object (Python Scanpy .h5ad)
 adata = sc.read_10x_h5(
     filename="./data/filtered_feature_bc_matrix.h5",
     backup_url="https://figshare.com/ndownloader/files/39546196",
@@ -115,7 +115,7 @@ print(f"Number of cells after filtering of low quality cells: {adata.n_obs}")
 # SoupX does not directly filter genes but adjusts their expression values.
 # However, after applying sc.pp.filter_genes(adata, min_cells=20), lowly expressed genes are removed.
 
-import anndata2ri # AnnData -> SingleCellExperiment
+import anndata2ri # AnnData (.h5ad) -> SingleCellExperiment (.RData)
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
 
@@ -206,3 +206,62 @@ sc.pp.filter_genes(adata, min_cells=20)
 print(f"Number of genes after cell filter: {adata.n_vars}")
 
 # Doublet Detection
+
+# In scRNA-seq (single-cell RNA sequencing), each cell should have a unique barcode.
+# However, in some cases, multiple cells may be captured under the same barcode and sequenced together.
+# This results in RNA from two cells being mixed, making them appear as a single cell.
+# This phenomenon is called a doublet, and tools like scDblFinder are used to detect it.
+
+# When multiple batches are combined, batch effects can cause normal cells to be mistakenly identified as doublets.
+# Therefore, it is recommended to perform doublet detection separately for each batch before merging the data.
+
+ro.r('''
+library(Seurat)
+library(scater)
+library(scDblFinder) # R package for doublet detection
+library(BiocParallel)
+''')
+
+data_mat = adata.X.T
+ro.globalenv["data_mat"] = data_mat
+
+ro.r('''
+set.seed(123)
+sce <- scDblFinder(SingleCellExperiment(list(counts=data_mat)))
+doublet_score <- sce$scDblFinder.score
+doublet_class <- sce$scDblFinder.class
+''')
+
+doublet_score = ro.r("doublet_score")
+doublet_class = ro.r("doublet_class")
+
+adata.obs["scDblFinder_score"] = doublet_score
+adata.obs["scDblFinder_class"] = doublet_class
+adata.obs.scDblFinder_class.value_counts()
+
+adata.write("./data/s4d8_quality_control.h5ad")
+# adata = sc.read_h5ad("./data/s4d8_quality_control.h5ad")
+# library(zellkonverter); zellkonverter::writeH5AD(adata, "./data/s4d8_quality_control.h5ad"); adata <- zellkonverter::readH5AD("./data/s4d8_quality_control.h5ad")
+
+# Seurat::SaveH5Seurat(seurat_object, filename = "single_cell_data.h5seurat")
+# seurat_object <- Seurat::LoadH5Seurat("single_cell_data.h5seurat")
+
+# ro.r('''
+# library(SeuratDisk)
+
+# # .h5seurat -> .h5ad
+# SeuratDisk::Convert("single_cell_data.h5seurat", dest = "h5ad", overwrite = TRUE)
+
+# # .h5ad -> .h5seurat
+# SeuratDisk::Convert("single_cell_data.h5ad", dest = "h5seurat", overwrite = TRUE)
+# ''')
+
+print("Before filtering:")
+print(f"Total number of cells before filtering: {adata.n_obs}")
+print(adata.obs["scDblFinder_class"].value_counts())
+
+adata = adata[adata.obs["scDblFinder_class"] == "singlet"].copy()
+
+print("After filtering:")
+print(f"Total number of cells after filtering: {adata.n_obs}")
+print(adata.obs["scDblFinder_class"].value_counts())
