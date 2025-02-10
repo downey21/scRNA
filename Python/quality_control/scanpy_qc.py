@@ -243,7 +243,7 @@ adata.write("./data/s4d8_quality_control.h5ad")
 # adata = sc.read_h5ad("./data/s4d8_quality_control.h5ad")
 # library(zellkonverter); zellkonverter::writeH5AD(adata, "./data/s4d8_quality_control.h5ad"); adata <- zellkonverter::readH5AD("./data/s4d8_quality_control.h5ad")
 
-# Seurat::SaveH5Seurat(seurat_object, filename = "single_cell_data.h5seurat")
+# # SeuratDisk::SaveH5Seurat(seurat_object, filename = "single_cell_data.h5seurat")
 # seurat_object <- Seurat::LoadH5Seurat("single_cell_data.h5seurat")
 
 # ro.r('''
