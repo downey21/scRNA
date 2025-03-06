@@ -99,6 +99,11 @@ adata.obs.mt_outlier.value_counts()
 
 print(f"Total number of cells: {adata.n_obs}")
 adata = adata[(~adata.obs.outlier) & (~adata.obs.mt_outlier)].copy()
+
+adata.var["n_cells_by_counts"] = np.sum(adata.X > 0, axis=0).A1 
+adata.var["total_counts"] = np.sum(adata.X, axis=0).A1
+adata.var["log1p_total_counts"] = np.log1p(adata.var["total_counts"])
+
 print(f"Number of cells after filtering of low quality cells: {adata.n_obs}")
 
 # sc.pl.violin(adata, 'total_counts')
@@ -212,6 +217,7 @@ adata.obs["log1p_total_counts"] = np.log1p(adata.obs["total_counts"])
 adata.obs["n_genes_by_counts"] = np.count_nonzero(adata.X.toarray(), axis=1)
 adata.obs["log1p_n_genes_by_counts"] = np.log1p(adata.obs["n_genes_by_counts"])
 
+
 print(f"Number of genes after cell filter: {adata.n_vars}")
 
 # Doublet Detection
@@ -257,6 +263,11 @@ print(f"Total number of cells before filtering: {adata.n_obs}")
 print(adata.obs["scDblFinder_class"].value_counts())
 
 adata = adata[adata.obs["scDblFinder_class"] == "singlet"].copy()
+
+adata.var["n_cells_by_counts"] = np.sum(adata.X > 0, axis=0).A1
+adata.var["total_counts"] = np.sum(adata.X, axis=0).A1
+adata.var["log1p_total_counts"] = np.log1p(adata.var["total_counts"])
+adata.var["n_cells"] = np.sum(adata.X > 0, axis=0).A1
 
 print("After filtering:")
 print(f"Total number of cells after filtering: {adata.n_obs}")

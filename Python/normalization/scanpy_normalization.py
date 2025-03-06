@@ -89,7 +89,7 @@ if issparse(data_mat):
     data_mat = data_mat.tocsc() if data_mat.nnz <= 2**31 - 1 else data_mat.tocoo()
 
 # Pass data to R
-data_mat_r = ro.r.matrix(data_mat.A if issparse(data_mat) else data_mat, 
+data_mat_r = ro.r.matrix(data_mat.A if issparse(data_mat) else data_mat,
                          nrow=data_mat.shape[0], 
                          ncol=data_mat.shape[1])
 ro.globalenv["data_mat"] = data_mat_r
@@ -101,9 +101,9 @@ ro.r(
     library(scran)
     library(SingleCellExperiment)
     library(BiocParallel)
-    sce <- SingleCellExperiment(list(counts=data_mat))
-    size_factors <- sizeFactors(
-        computeSumFactors(
+    sce <- SingleCellExperiment::SingleCellExperiment(list(counts=data_mat))
+    size_factors <- SingleCellExperiment::sizeFactors(
+        scran::computeSumFactors(
             sce,
             clusters = input_groups,
             min.mean = 0.1,
