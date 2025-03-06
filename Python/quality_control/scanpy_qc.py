@@ -167,31 +167,33 @@ ro.globalenv['genes'] = genes
 ro.globalenv['cells'] = cells
 ro.globalenv['soupx_groups'] = soupx_groups
 
-ro.r('''
-# specify row and column names of data
-rownames(data) <- genes
-colnames(data) <- cells
+ro.r(
+    """
+    # specify row and column names of data
+    rownames(data) <- genes
+    colnames(data) <- cells
 
-# ensure correct sparse format for table of counts and table of droplets
-data <- as(data, "sparseMatrix")
-data_tod <- as(data_tod, "sparseMatrix")
+    # ensure correct sparse format for table of counts and table of droplets
+    data <- as(data, "sparseMatrix")
+    data_tod <- as(data_tod, "sparseMatrix")
 
-# Generate SoupChannel Object for SoupX 
-sc <- SoupX::SoupChannel(data_tod, data, calcSoupProfile = FALSE)
+    # Generate SoupChannel Object for SoupX 
+    sc <- SoupX::SoupChannel(data_tod, data, calcSoupProfile = FALSE)
 
-# Add extra meta data to the SoupChannel object
-soupProf <- data.frame(row.names = rownames(data), est = rowSums(data)/sum(data), counts = rowSums(data))
-sc <- SoupX::setSoupProfile(sc, soupProf)
+    # Add extra meta data to the SoupChannel object
+    soupProf <- data.frame(row.names = rownames(data), est = rowSums(data)/sum(data), counts = rowSums(data))
+    sc <- SoupX::setSoupProfile(sc, soupProf)
 
-# Set cluster information in SoupChannel
-sc <- SoupX::setClusters(sc, soupx_groups)
+    # Set cluster information in SoupChannel
+    sc <- SoupX::setClusters(sc, soupx_groups)
 
-# Estimate contamination fraction
-sc <- SoupX::autoEstCont(sc, doPlot=FALSE)
+    # Estimate contamination fraction
+    sc <- SoupX::autoEstCont(sc, doPlot=FALSE)
 
-# Infer corrected table of counts and rount to integer
-out <- SoupX::adjustCounts(sc, roundToInt = TRUE)
-''')
+    # Infer corrected table of counts and rount to integer
+    out <- SoupX::adjustCounts(sc, roundToInt = TRUE)
+    """
+)
 
 out = ro.r('out')
 
@@ -203,6 +205,13 @@ print(f"Total number of genes: {adata.n_vars}")
 
 # Min 20 cells - filters out 0 count genes
 sc.pp.filter_genes(adata, min_cells=20)
+
+adata.obs["total_counts"] = np.sum(adata.X, axis=1).A1
+adata.obs["log1p_total_counts"] = np.log1p(adata.obs["total_counts"])
+
+adata.obs["n_genes_by_counts"] = np.count_nonzero(adata.X.toarray(), axis=1)
+adata.obs["log1p_n_genes_by_counts"] = np.log1p(adata.obs["n_genes_by_counts"])
+
 print(f"Number of genes after cell filter: {adata.n_vars}")
 
 # Doublet Detection
@@ -215,22 +224,26 @@ print(f"Number of genes after cell filter: {adata.n_vars}")
 # When multiple batches are combined, batch effects can cause normal cells to be mistakenly identified as doublets.
 # Therefore, it is recommended to perform doublet detection separately for each batch before merging the data.
 
-ro.r('''
-library(Seurat)
-library(scater)
-library(scDblFinder) # R package for doublet detection
-library(BiocParallel)
-''')
+ro.r(
+    """
+    library(Seurat)
+    library(scater)
+    library(scDblFinder) # R package for doublet detection
+    library(BiocParallel)
+    """
+)
 
 data_mat = adata.X.T
 ro.globalenv["data_mat"] = data_mat
 
-ro.r('''
-set.seed(123)
-sce <- scDblFinder(SingleCellExperiment(list(counts=data_mat)))
-doublet_score <- sce$scDblFinder.score
-doublet_class <- sce$scDblFinder.class
-''')
+ro.r(
+    """
+    set.seed(123)
+    sce <- scDblFinder(SingleCellExperiment(list(counts=data_mat)))
+    doublet_score <- sce$scDblFinder.score
+    doublet_class <- sce$scDblFinder.class
+    """
+)
 
 doublet_score = ro.r("doublet_score")
 doublet_class = ro.r("doublet_class")
@@ -238,23 +251,6 @@ doublet_class = ro.r("doublet_class")
 adata.obs["scDblFinder_score"] = doublet_score
 adata.obs["scDblFinder_class"] = doublet_class
 adata.obs.scDblFinder_class.value_counts()
-
-adata.write("./data/s4d8_quality_control.h5ad")
-# adata = sc.read_h5ad("./data/s4d8_quality_control.h5ad")
-# library(zellkonverter); zellkonverter::writeH5AD(adata, "./data/s4d8_quality_control.h5ad"); adata <- zellkonverter::readH5AD("./data/s4d8_quality_control.h5ad")
-
-# # SeuratDisk::SaveH5Seurat(seurat_object, filename = "single_cell_data.h5seurat")
-# seurat_object <- Seurat::LoadH5Seurat("single_cell_data.h5seurat")
-
-# ro.r('''
-# library(SeuratDisk)
-
-# # .h5seurat -> .h5ad
-# SeuratDisk::Convert("single_cell_data.h5seurat", dest = "h5ad", overwrite = TRUE)
-
-# # .h5ad -> .h5seurat
-# SeuratDisk::Convert("single_cell_data.h5ad", dest = "h5seurat", overwrite = TRUE)
-# ''')
 
 print("Before filtering:")
 print(f"Total number of cells before filtering: {adata.n_obs}")
@@ -265,3 +261,22 @@ adata = adata[adata.obs["scDblFinder_class"] == "singlet"].copy()
 print("After filtering:")
 print(f"Total number of cells after filtering: {adata.n_obs}")
 print(adata.obs["scDblFinder_class"].value_counts())
+
+adata.write("./data/s4d8_quality_control.h5ad")
+# adata = sc.read_h5ad("./data/s4d8_quality_control.h5ad")
+# library(zellkonverter); zellkonverter::writeH5AD(adata, "./data/s4d8_quality_control.h5ad"); adata <- zellkonverter::readH5AD("./data/s4d8_quality_control.h5ad")
+
+# # SeuratDisk::SaveH5Seurat(seurat_object, filename = "single_cell_data.h5seurat")
+# seurat_object <- Seurat::LoadH5Seurat("single_cell_data.h5seurat")
+
+# ro.r(
+#     """
+#     library(SeuratDisk)
+
+#     # .h5seurat -> .h5ad
+#     SeuratDisk::Convert("single_cell_data.h5seurat", dest = "h5ad", overwrite = TRUE)
+
+#     # .h5ad -> .h5seurat
+#     SeuratDisk::Convert("single_cell_data.h5ad", dest = "h5seurat", overwrite = TRUE)
+#     """
+# )
