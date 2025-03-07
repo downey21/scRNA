@@ -17,7 +17,8 @@ adata = sc.read(
 )
 
 # Set the main expression matrix to log1p normalized values (Shifted Logarithm Normalization)
-adata.X = adata.layers["log1p_norm"]
+adata.layers["original_counts"] = adata.X.copy()  # Store raw count before overwriting
+adata.X = adata.layers["log1p_norm"]  # Use log1p normalized counts for analysis
 
 # Mark highly variable genes as highly deviant ones
 # This allows the use of `use_highly_variable=True` in PCA
