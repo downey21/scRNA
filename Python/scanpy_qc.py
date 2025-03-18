@@ -16,7 +16,7 @@ sc.settings.set_figure_params(
     frameon=False,
 )
 
-#  single-cell multiomics data from bone marrow mononuclear cells of
+# single-cell multiomics data from bone marrow mononuclear cells of
 # 12 healthy human donors measured at four different sites to obtain nested batch effects
 # In this tutorial, we will use one batch of the aforementioned dataset, sample 4 of donor 8,
 # to showcase the best practices for scRNA-seq data preprocessing.

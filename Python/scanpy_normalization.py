@@ -4,9 +4,8 @@
 # https://www.sc-best-practices.org/preprocessing_visualization/normalization.html
 
 # Normalization
-# It is the process of adjusting the variability caused by sampling effects
-# to bring the data variance within a consistent range.
-# This ensures that statistical methods can be more accurately applied in subsequent analyses.
+# Normalization adjusts for differences in count depth caused by sequencing variability
+# Normalization step ensures that statistical methods can be more accurately applied in subsequent analyses.
 
 import numpy as np
 import pandas as pd

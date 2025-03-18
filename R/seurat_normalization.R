@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Normalization
-# It is the process of adjusting the variability caused by sampling effects
-# to bring the data variance within a consistent range.
-# This ensures that statistical methods can be more accurately applied in subsequent analyses.
+# Normalization adjusts for differences in count depth caused by sequencing variability
+# Normalization step ensures that statistical methods can be more accurately applied in subsequent analyses.
 
 rm(list = ls())
 
@@ -27,7 +26,6 @@ pbmc <- readRDS(file = "./data/pbmc3k_qc.rds")
 # Shifted Logarithm Normalization
 pbmc <- Seurat::NormalizeData(pbmc, normalization.method = "LogNormalize", scale.factor = 10000)
 
-# 확인하기
 raw_counts <- Seurat::GetAssayData(pbmc, assay = "RNA", layer = "counts")
 log1p_norm_counts <- Seurat::GetAssayData(pbmc, assay = "RNA", layer = "data")
 
