@@ -133,15 +133,8 @@ Tips:
 ## References
 This README is based on the followings:
 
-Luecken, Malte D., and Fabian J. Theis. "Current best practices in single-cell RNA-seq analysis: a tutorial." *Molecular systems biology* 15.6 (2019): e8746.
+- Heumos, Lukas, et al. "Best practices for single-cell analysis across modalities." *Nature Reviews Genetics* 24.8 (2023): 550-572.
 
-```bibtex
-@article{luecken2019current,
-  title={Current best practices in single-cell RNA-seq analysis: a tutorial},
-  author={Luecken, Malte D and Theis, Fabian J},
-  journal={Molecular systems biology},
-  volume={15},
-  number={6},
-  pages={e8746},
-  year={2019}
-}
+- Luecken, Malte D., and Fabian J. Theis. "Current best practices in single-cell RNA-seq analysis: a tutorial." *Molecular systems biology* 15.6 (2019): e8746.
+
+- [The Single-Cell Best Practices online book](https://www.sc-best-practices.org/preamble.html).
