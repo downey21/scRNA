@@ -131,7 +131,7 @@ Tips:
 - **UMAP** (Uniform Manifold Approximation and Projection)
 
 ## References
-This README is based on the followings:
+This repository is inspired by the following papers:
 
 - Heumos, Lukas, et al. "Best practices for single-cell analysis across modalities." *Nature Reviews Genetics* 24.8 (2023): 550-572.
 
